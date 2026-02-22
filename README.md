@@ -24,7 +24,7 @@ N=5: [cur | A | B] / [C | D | E] 3x2
 - Windows Terminal (`wt.exe`)
 - Git Bash (`C:\Program Files\Git\bin\bash.exe`)
 - [Claude Code](https://claude.ai/claude-code)
-- [playwright-cli](https://github.com/anthropics/playwright-cli) (オプション)
+- [playwright-cli](https://github.com/microsoft/playwright-cli) (オプション)
 - [git-worktree-runner](https://github.com/coderabbitai/git-worktree-runner) (オプション、`git gtr` コマンド)
 
 ## インストール
@@ -112,3 +112,4 @@ rm ~/bin/cwt
 ## ライセンス
 
 MIT
+
