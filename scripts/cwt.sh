@@ -110,12 +110,12 @@ detect_ports() {
 find_free_port() {
   for port in $(shuf -i 50000-60000); do
     if command -v ss &>/dev/null; then
-      ss -tln 2>/dev/null | grep -q ":${port} " || {
+      ss -tln 2>/dev/null | grep -qE ":${port}\b" || {
         echo "$port"
         return 0
       }
     else
-      netstat -tln 2>/dev/null | grep -q ":${port} " || {
+      netstat -tln 2>/dev/null | grep -qE ":${port}\b" || {
         echo "$port"
         return 0
       }
@@ -131,7 +131,10 @@ find_free_ports() {
   for ((i = 0; i < count; i++)); do
     local port
     while true; do
-      port=$(find_free_port)
+      port=$(find_free_port) || {
+        echo "ERROR: ポート確保に失敗" >&2
+        return 1
+      }
       local dup=false
       for u in "${used[@]:-}"; do [[ "$u" == "$port" ]] && {
         dup=true
