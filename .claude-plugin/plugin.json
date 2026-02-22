@@ -1,0 +1,9 @@
+{
+  "name": "cwt-cli",
+  "version": "1.0.0",
+  "description": "Claude Worktree launcher - Issue番号からworktree+Claude+Playwrightセッションをグリッドペインで一括起動",
+  "author": {
+    "name": "okappy"
+  },
+  "keywords": ["worktree", "playwright", "parallel", "multi-session"]
+}
