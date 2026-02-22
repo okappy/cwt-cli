@@ -31,12 +31,47 @@ if command -v git-gtr &>/dev/null; then
   USE_GTR=true
 fi
 
+# ---- 環境検出 ----
+# WSL / Git Bash(MSYS/MINGW) / その他 を自動判別
+if grep -qiE 'microsoft|wsl' /proc/version 2>/dev/null; then
+  CWT_ENV="wsl"
+elif [ -n "${MSYSTEM:-}" ] || [ -n "${MINGW_PREFIX:-}" ]; then
+  CWT_ENV="gitbash"
+else
+  CWT_ENV="other"
+fi
+
+# パス変換ヘルパー: Unix→Windows
+to_win_path() {
+  case "$CWT_ENV" in
+    wsl)     wslpath -w "$1" ;;
+    gitbash) cygpath -w "$1" ;;
+    *)       echo "$1" ;;
+  esac
+}
+
+# パス変換ヘルパー: Windows→Unix
+to_unix_path() {
+  case "$CWT_ENV" in
+    wsl)     wslpath -u "$1" ;;
+    gitbash) cygpath -u "$1" ;;
+    *)       echo "$1" ;;
+  esac
+}
+
 # ---- パス解決 ----
 # スクリプト自身のパスを取得（シンボリックリンク解決）
 SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || realpath "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")"
-GITBASH='C:\Program Files\Git\bin\bash.exe'
+
 # wt.exe に渡すランチャーパス（Windows形式）
-LAUNCHER_WIN="$(cygpath -w "$SCRIPT_PATH" 2>/dev/null || echo "$SCRIPT_PATH")"
+LAUNCHER_WIN="$(to_win_path "$SCRIPT_PATH")"
+
+# 各ペインで起動するシェル
+case "$CWT_ENV" in
+  wsl)     PANE_SHELL="wsl.exe" ; PANE_SHELL_ARGS=("--cd" "~") ;;
+  gitbash) PANE_SHELL='C:\Program Files\Git\bin\bash.exe' ; PANE_SHELL_ARGS=("--login") ;;
+  *)       PANE_SHELL="bash" ; PANE_SHELL_ARGS=() ;;
+esac
 
 # ============================================================
 # --launch モード: 各ペイン内で実行されるランチャー機能
@@ -53,10 +88,8 @@ run_launcher() {
   # Playwright セッションを設定
   export PLAYWRIGHT_CLI_SESSION="$branch_name"
 
-  # Windows パスを Unix パスに変換（Git Bash 用）
-  if command -v cygpath &>/dev/null; then
-    repo_root="$(cygpath -u "$repo_root")"
-  fi
+  # Windows パスを Unix パスに変換
+  repo_root="$(to_unix_path "$repo_root")"
 
   cd "$repo_root"
 
@@ -130,7 +163,7 @@ make_branch_name() {
 launch_grid() {
   local repo_root win_repo
   repo_root="$(git rev-parse --show-toplevel)"
-  win_repo="$(cygpath -w "$repo_root")"
+  win_repo="$(to_win_path "$repo_root")"
 
   local -a issues=("$@")
   local n=${#issues[@]}
@@ -151,7 +184,7 @@ launch_grid() {
     wt.exe -w 0 sp "${split_args[@]}" \
       --title "Claude: #${issues[$idx]}" \
       -d "${win_repo}" \
-      "${GITBASH}" --login "${LAUNCHER_WIN}" --launch \
+      "${PANE_SHELL}" "${PANE_SHELL_ARGS[@]}" "${LAUNCHER_WIN}" --launch \
       "${issues[$idx]}" "${branches[$idx]}" "${win_repo}"
     sleep 2
   }
