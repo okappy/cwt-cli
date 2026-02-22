@@ -1,9 +1,12 @@
 {
   "name": "cwt-cli",
-  "version": "1.0.0",
-  "description": "Claude Worktree launcher - Issue番号からworktree+Claude+Playwrightセッションをグリッドペインで一括起動",
+  "version": "0.2.0",
+  "description": "Claude Worktree launcher - Issue番号からworktree+Claude+Playwrightセッションをグリッドペインで一括起動。ポート競合防止のため各worktreeに専用ポートを自動割り当て。",
   "author": {
     "name": "okappy"
   },
-  "keywords": ["worktree", "playwright", "parallel", "multi-session"]
+  "repository": "https://github.com/okappy/cwt-cli",
+  "license": "MIT",
+  "keywords": ["worktree", "playwright", "parallel", "port-management"],
+  "hooks": "./hooks/hooks.json"
 }
